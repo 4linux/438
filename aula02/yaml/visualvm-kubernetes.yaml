@@ -1,0 +1,84 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: visualvm
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: visualvm-data
+  namespace: visualvm
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visualvm
+  namespace: visualvm
+  labels:
+    app: visualvm  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: visualvm
+  template:
+    metadata:
+      labels:
+        app: visualvm
+    spec:
+      initContainers:
+        - name: setup-visualvm
+          image: lab4linux/visualvm2:latest
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              set -ex
+              if [ ! -f /mnt/visualvm/jboss-client.jar ]; then
+                echo "Copiando arquivos do VisualVM..."
+                cp -a /srv/visualvm /mnt/ || true
+              else
+                echo "Arquivos já existentes, ignorando cópia..."
+              fi
+          volumeMounts:
+            - name: visualvm-data
+              mountPath: "/mnt"
+      containers:
+        - name: visualvm
+          image: lab4linux/visualvm2:latest
+          ports:
+            - containerPort: 6080
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - name: visualvm-data
+              mountPath: "/root/.visualvm"
+      volumes:
+        - name: visualvm-data
+          persistentVolumeClaim:
+            claimName: visualvm-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: visualvm
+  name: visualvm
+  namespace: visualvm
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    app: visualvm
+  type: LoadBalancer

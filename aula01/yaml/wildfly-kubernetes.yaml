@@ -1,0 +1,121 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wildfly
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wildfly-data
+  namespace: wildfly
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wildfly
+  namespace: wildfly
+  labels:
+    app: wildfly  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wildfly
+  template:
+    metadata:
+      labels:
+        app: wildfly
+    spec:
+      initContainers:
+        - name: setup-wildfly
+          image: lab4linux/wildfly-alpine:latest
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              set -ex
+              mkdir -p /mnt/configuration
+              mkdir -p /mnt/deployments
+              mkdir -p /mnt/data/content
+              mkdir -p /mnt/log
+
+              if [ ! -f /mnt/configuration/standalone-ha.xml ]; then
+                echo "Copiando arquivos padrão de configuração (HA)..."
+                cp -a /opt/wildfly/standalone/configuration/* /mnt/configuration/ || true
+              else
+                echo "Arquivos já existentes, ignorando cópia..."
+              fi
+              chown -R javauser:javagroup /mnt/*
+          volumeMounts:
+            - name: wildfly-data
+              mountPath: "/mnt"
+      containers:
+        - name: wildfly
+          image: lab4linux/wildfly-alpine:latest
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 8443
+              name: https
+              protocol: TCP
+            - containerPort: 9990
+              name: mgmt
+              protocol: TCP
+          env:
+            - name: WILDFLY_USER
+              value: "admin"
+            - name: WILDFLY_PASSWORD
+              value: "4LabsCurso@"
+            - name: WILDFLY_CONF_FILE
+              value: "standalone-full-ha.xml"
+          volumeMounts:
+            - name: wildfly-data
+              mountPath: "/opt/wildfly/standalone/configuration"
+              subPath: configuration
+            - name: wildfly-data
+              mountPath: "/opt/wildfly/standalone/deployments"
+              subPath: deployments
+            - name: wildfly-data
+              mountPath: "/opt/wildfly/standalone/data/content"
+              subPath: data/content
+            - name: wildfly-data
+              mountPath: "/opt/wildfly/standalone/log"
+              subPath: log
+            - name: wildfly-data-temp
+              mountPath: "/opt/wildfly/standalone/data"
+      volumes:
+        - name: wildfly-data
+          persistentVolumeClaim:
+            claimName: wildfly-data
+        - name: wildfly-data-temp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wildfly
+  name: wildfly
+  namespace: wildfly
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    - name: mgmt
+      port: 9990
+      protocol: TCP
+      targetPort: mgmt
+  selector:
+    app: wildfly
+  type: LoadBalancer

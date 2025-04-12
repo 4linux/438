@@ -1,0 +1,8 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: wildfly
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms256m -Xmx512m -XX:+UseParallelGC -Xlog:gc*:file=/opt/wildfly/standalone/log/gc.log:time,uptime,level,tags"

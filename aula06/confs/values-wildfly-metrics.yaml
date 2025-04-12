@@ -1,0 +1,7 @@
+extraScrapeConfigs: |
+  - job_name: 'wildfly'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - wildfly:9990
+    fallback_scrape_protocol: "PrometheusText0.0.4"

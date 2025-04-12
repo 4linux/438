@@ -1,0 +1,15 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: wildfly
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xms512m -Xmx400m"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

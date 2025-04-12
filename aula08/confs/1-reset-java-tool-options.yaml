@@ -1,0 +1,26 @@
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: setup-wildfly
+          resources:
+            requests:
+              memory: "0"
+              cpu: "0"
+            limits:
+              memory: "0"
+              cpu: "0"
+      containers:
+        - name: wildfly
+          env:
+            - name: JAVA_OPTS
+              value: ""
+            - name: JAVA_TOOL_OPTIONS
+              value: ""
+          resources:
+            requests:
+              memory: "0"
+              cpu: "0"
+            limits:
+              memory: "0"
+              cpu: "0"

@@ -1,0 +1,21 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: wildfly
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >
+                -XX:ActiveProcessorCount=2
+                -Xms256m
+                -Xmx512m
+                -XX:+UseParallelGC
+                -XX:+AlwaysPreTouch
+                -Xlog:gc*:file=/opt/wildfly/standalone/log/gc.log:time,uptime,level,tags:filecount=10,filesize=10M
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2048Mi"
+              cpu: "500m"

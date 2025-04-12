@@ -1,0 +1,24 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: wildfly
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >
+                -XX:InitialRAMPercentage=50.0
+                -XX:MaxRAMPercentage=75.0
+                -XX:+UnlockExperimentalVMOptions
+                -XX:+UseContainerSupport
+                -XX:+PrintFlagsFinal
+                -XX:+UseShenandoahGC
+                -XX:NewSize=256m
+                -XX:MaxNewSize=512m
+                -Xlog:gc*:file=/opt/wildfly/standalone/log/gc.log:time,uptime,level,tags
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
