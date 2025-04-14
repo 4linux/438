@@ -4,6 +4,8 @@ spec:
       containers:
         - name: wildfly
           env:
+            - name: JAVA_OPTS
+              value: ""
             - name: JAVA_TOOL_OPTIONS
               value: >
                 -XX:InitialRAMPercentage=50.0
