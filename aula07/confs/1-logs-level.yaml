@@ -15,4 +15,4 @@ spec:
                 -XX:+UseShenandoahGC
                 -XX:NewSize=512m
                 -XX:MaxNewSize=1024m
-                -Xlog:gc*=info:file=/opt/wildfly/standalone/log/gc.log:time,uptime,level,tags
+                -Xlog:gc*=debug:file=/opt/wildfly/standalone/log/gc.log:time,uptime,level,tags
